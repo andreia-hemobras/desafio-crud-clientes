@@ -3,6 +3,8 @@ package dev.andreia.desafio_crud_clientes.services;
 import dev.andreia.desafio_crud_clientes.dto.ClientDto;
 import dev.andreia.desafio_crud_clientes.entities.Client;
 import dev.andreia.desafio_crud_clientes.repositories.ClientRepository;
+import dev.andreia.desafio_crud_clientes.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +26,11 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientDto findById(Long id){
-        return new ClientDto(repository.findById(id).get());
+        Client client = repository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado."));
+
+        return new ClientDto(client);
     }
 
     @Transactional
@@ -38,15 +44,23 @@ public class ClientService {
 
     @Transactional
     public ClientDto update(Long id, ClientDto dto){
-        Client entity = repository.getReferenceById(id);
-        copyDtoToEntity(dto, entity);
-        repository.save(entity);
+        try{
+            Client entity = repository.getReferenceById(id);
+            copyDtoToEntity(dto, entity);
+            repository.save(entity);
 
-        return new ClientDto(entity);
+            return new ClientDto(entity);
+        } catch(EntityNotFoundException ex){
+            throw new ResourceNotFoundException("Recurso não encontrado.");
+        }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void delete(Long id){
+        if(!repository.existsById(id)){
+            throw new ResourceNotFoundException("Recurso não encontrado.");
+        }
+
         repository.deleteById(id);
     }
 
