@@ -1,15 +1,21 @@
 package dev.andreia.desafio_crud_clientes.dto;
 
 import dev.andreia.desafio_crud_clientes.entities.Client;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
 
 import java.time.LocalDate;
 
 public class ClientDto {
 
     private Long id;
+
+    @NotBlank(message = "Campo requerido")
     private String name;
     private String cpf;
     private Double income;
+
+    @PastOrPresent(message = "Não aceita data futura")
     private LocalDate birthDate;
     private Integer children;
 
